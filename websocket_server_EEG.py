@@ -31,7 +31,7 @@ class WebSocketHandler(websocket.WebSocketHandler):
 		print "Sending Data"
 		#create a bunch of random data for various dimensions we want
 		k = 0
-		with open("1.csv") as csvfile:
+		with open("Smaller_EEGfile.csv") as csvfile:
 			csv_reader = csv.reader(csvfile, delimiter=",")
 			for row in csv_reader:		
 				#create a new data point
