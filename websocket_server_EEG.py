@@ -9,7 +9,7 @@ import csv
 
 paymentTypes = ["cash", "tab", "visa","mastercard","bitcoin"]
 namesArray = ['Ben', 'Jarrod', 'Vijay', 'Aziz']
-
+#
 class WebSocketHandler(websocket.WebSocketHandler):
 	
 	def check_origin(self, origin):
