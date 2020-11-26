@@ -33,6 +33,8 @@ import matplotlib.pyplot as plt
 
 
 #df = pd.read_csv('righthand.csv', header=0, index_col=0, nrows=1000)
+
+# Reads only 60000 lines from the file.
 df = pd.read_csv('righthand.csv', header=0, index_col=0, nrows = 60000)
 df = df.drop("E65", axis = 1)
 
@@ -43,7 +45,8 @@ l = len(header)
 
 totsize = len(df.index)
 
-timestep = 500
+# As we recorded EEG data at rate 1024 Hz, %12 lines would be equal to 0.5 sec of real time.
+timestep = 512
 
 #fig = plt.figure()
 
@@ -93,6 +96,7 @@ for k in range(0,totsize,timestep):
 
 	#print("To compute Correlation matrix time took:", end-start)
 	
+	# makes a heatmap
 	plt.matshow(ADJ_corr)
 	plt.colorbar()
 	plt.savefig("Pear_cor/Pearson_corr_%1.0f_.png" % k, dpi = 200.0)
@@ -104,16 +108,17 @@ for k in range(0,totsize,timestep):
 	#print(df1[1:2])
 	#pcorr_TS = pg.pcorr(df1)
 	
-	plt.matshow(pcorr_TS)
-	plt.colorbar()
-	plt.savefig("Par_cor/Partial_corr_%1.0f_.png" % k, dpi = 200.0)
-	plt.clf()
+	#plt.matshow(pcorr_TS)
+	#plt.colorbar()
+	#plt.savefig("Par_cor/Partial_corr_%1.0f_.png" % k, dpi = 200.0)
+	#plt.clf()
 	#plt.show()
-	plt.close("all")
+	#plt.close()
 
 image_folder='Pear_cor'
 fps=1000/timestep
 
+# Convert images into video
 image_files = [image_folder+'/'+img for img in os.listdir(image_folder) if img.endswith(".png")]
 clip = moviepy.video.io.ImageSequenceClip.ImageSequenceClip(image_files, fps=fps)
 clip.write_videofile('pearson_cor.mp4')
