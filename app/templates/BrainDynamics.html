@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>three.js webgl - decal splatter</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<link rel=stylesheet type=text/css href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.3.2/css/bootstrap.min.css" media="all">
+	</head>
+	<body>
+		<script src="https://canvasjs.com/assets/script/canvasjs.min.js"> </script>
+		<div id="container"></div>
+		<div id="info">
+			<a href="https://threejs.org" target="_blank" rel="noopener">three.js</a> - decal splatter<br/>
+			click to shoot
+		</div>
+		<div id="livechartContainer" style="height: 80px; width: 100%;"></div>
+		<div id="livechartContainer1" style="height: 80px; width: 100%;"></div>
+		<div id="livechartContainer2" style="height: 80px; width: 100%;"></div>
+		
+
+<!--        From here we have code for real time plot with slider and with sphere whose radius changes with value send by the server -->
+        <script src="//code.jquery.com/jquery-3.3.1.min.js"></script>
+		<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script>
+        <script type="module">
+			
+		
+			// To read from the server
+			$(document).ready(function(){
+				//connect to the socket server.
+				var socket = io.connect('http://' + document.domain + ':' + location.port + '/network');
+				//receive details from server
+				socket.on('newnetwork', function(msg) {	
+                    console.log("node1s", msg.node1)
+                    console.log("node2s", msg.node2)
+                    console.log("weight", msg.weight)
+
+				});
+			});
+
+			
+			
+  
+        </script>
+        
+	</body>
+</html>
