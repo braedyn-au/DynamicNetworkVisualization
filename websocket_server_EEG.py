@@ -7,10 +7,11 @@ from datetime import timedelta
 from random import randint
 import csv
 import pandas as pd
+import os
 
 paymentTypes = ["cash", "tab", "visa","mastercard","bitcoin"]
 namesArray = ['Ben', 'Jarrod', 'Vijay', 'Aziz']
-#
+
 class WebSocketHandler(websocket.WebSocketHandler):
 	
 	def check_origin(self, origin):
@@ -33,20 +34,21 @@ class WebSocketHandler(websocket.WebSocketHandler):
 		#create a bunch of random data for various dimensions we want
 		k = 0
 		# with open("Smaller_EEGfile.csv") as csvfile:
-		with open("./randNetwork.csv") as csvfile:
-			# csv_reader = csv.reader(csvfile, delimiter=",")
-			csv_reader = pd.read_csv(csvfile, header=0)
-			print csv_reader
-			for row in csv_reader.iterrows():		
+		for net in os.listdir('./nets'):
+			print "./nets/" + str(net)
+			with open("./nets/"+net) as csvfile:
+				# csv_reader = csv.reader(csvfile, delimiter=",")
+				csv_reader = pd.read_csv(csvfile, header=0)
+				#threshold values
+				csv_reader = csv_reader[csv_reader['weight']>0.9]
+				# print csv_reader['node1']
 				#create a new data point
 				print row
 				point_data = {
-					'node1': float(row[1]['node1']),
-					'node2': float(row[1]['node2']),
-					'weight': float(row[1]['weight']) #abs(float(row[4]))
+					'node1': list(csv_reader['node1']),
+					'node2': list(csv_reader['node2']),
+					'weight': list(csv_reader['weight']) #abs(float(row[4]))
 				}
-
-				print point_data
 
 				#write the json object to the socket
 				self.write_message(json.dumps(point_data))
