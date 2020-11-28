@@ -6,6 +6,7 @@ from tornado import websocket, web, ioloop
 from datetime import timedelta
 from random import randint
 import csv
+import pandas as pd
 
 paymentTypes = ["cash", "tab", "visa","mastercard","bitcoin"]
 namesArray = ['Ben', 'Jarrod', 'Vijay', 'Aziz']
@@ -31,12 +32,18 @@ class WebSocketHandler(websocket.WebSocketHandler):
 		print "Sending Data"
 		#create a bunch of random data for various dimensions we want
 		k = 0
-		with open("Smaller_EEGfile.csv") as csvfile:
-			csv_reader = csv.reader(csvfile, delimiter=",")
-			for row in csv_reader:		
+		# with open("Smaller_EEGfile.csv") as csvfile:
+		with open("./randNetwork.csv") as csvfile:
+			# csv_reader = csv.reader(csvfile, delimiter=",")
+			csv_reader = pd.read_csv(csvfile, header=0)
+			print csv_reader
+			for row in csv_reader.iterrows():		
 				#create a new data point
+				print row
 				point_data = {
-					'value': abs(float(row[4]))
+					'node1': float(row[1]['node1']),
+					'node2': float(row[1]['node2']),
+					'weight': float(row[1]['weight']) #abs(float(row[4]))
 				}
 
 				print point_data

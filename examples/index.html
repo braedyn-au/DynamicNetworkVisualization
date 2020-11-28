@@ -251,7 +251,7 @@
           return obj;
         })
 
-        // create the real time chart
+        // REALTIME CHART
         var chart = realTimeChart()
             .title("Chart Title")
             .yTitle("Y Scale")
@@ -352,14 +352,15 @@
         connection.onmessage = function(event) {
             var newData = JSON.parse(event.data);
             var now = new Date();
-            var obj = {
-              value: 5.0*newData.value, 
-              time: now,
-              color: "blue",
-              ts: now.getTime(),
-              interval: 500.0
-            };
-
+            // var obj = {
+            //   value: 5.0*newData.value, 
+            //   time: now,
+            //   color: "blue",
+            //   ts: now.getTime(),
+            //   interval: 500.0
+            // };
+            var obj = {node1: newData.node1, node2: newData.node2, weight: newData.weight};
+            console.log(obj);
             // send the datum to the chart
             chart.datum(obj);
             
