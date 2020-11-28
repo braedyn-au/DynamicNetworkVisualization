@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>three.js webgl - decal splatter</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		
+		<script src="{{url_for('static', filename='jquery.min.js')}}"></script>
+		
+	</head>
+	<body>
+
+		<script src="https://canvasjs.com/assets/script/canvasjs.min.js"> </script>
+		<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script>
+		
+		<div id="livechartContainer1" style="height: 180px; width: 100%;"></div>
+		<div id="livechartContainer2" style="height: 180px; width: 100%;"></div>
+		<div id="livechartContainer3" style="height: 180px; width: 100%;"></div>
+		<div id="livechartContainer4" style="height: 180px; width: 100%;"></div>
+		<div id="livechartContainer5" style="height: 180px; width: 100%;"></div>
+		<div id="livechartContainer6" style="height: 180px; width: 100%;"></div>
+		<div id="livechartContainer7" style="height: 180px; width: 100%;"></div>
+		<div id="livechartContainer8" style="height: 180px; width: 100%;"></div>
+		
+
+<!--        From here we have code for real time plot with slider and with sphere whose radius changes with value send by the server -->
+
+		
+        <script>
+			
+			window.onload = function () {
+				
+				var ch1 = []
+				var ch2 = []
+				var ch3 = []
+				
+				var chlist = []
+				for(var i=1; i<65; i++){
+					chlist.push("E"+i)
+					}
+				
+				var comdataset = []
+				for(var i=0; i<8; i++){
+					var dataset = []
+					for(var j = 0; j<8; j++){
+						var vals = []
+						dataset.push({	showInLegend: true,
+										type: "line", 
+										xValueType: "dateTime",
+										legendText: chlist[8*i+j],
+										xValueFormatString: "hh:mm:ss TT",
+										dataPoints: vals})
+					};
+					comdataset.push(dataset)
+				}
+				
+				var chart1 = new CanvasJS.Chart("livechartContainer1", {
+					zoomEnabled: true,
+					zoomType: "x", // change it to "xy" to enable zooming on both axes
+					title :{
+						text: "Dynamic EEG Data",
+						fontSize: 25,
+					},
+					axisX: {
+					gridThickness: 0,
+					tickThickness: 0,
+					lineThickness: 0,
+					labelFormatter: function (e) {
+											  return " ";
+											}
+					},
+					legend: {
+						cursor: "pointer",
+						itemclick: function (e) {
+							//console.log("legend click: " + e.dataPointIndex);
+							//console.log(e);
+							if (typeof (e.dataSeries.visible) === "undefined" || e.dataSeries.visible) {
+								e.dataSeries.visible = false;
+							} else {
+								e.dataSeries.visible = true;
+							}
+
+							e.chart.render();
+						}
+					},
+					data: comdataset[0],
+					rangeChanged: syncHandler
+				});
+					
+				var chart2 = new CanvasJS.Chart("livechartContainer2", {
+					zoomEnabled: true,
+					zoomType: "x", // change it to "xy" to enable zooming on both axes
+					axisX: {
+					gridThickness: 0,
+					tickThickness: 0,
+					lineThickness: 0,
+					labelFormatter: function (e) {
+												return " ";
+												}
+					},
+					legend: {
+						cursor: "pointer",
+						itemclick: function (e) {
+							//console.log("legend click: " + e.dataPointIndex);
+							//console.log(e);
+							if (typeof (e.dataSeries.visible) === "undefined" || e.dataSeries.visible) {
+								e.dataSeries.visible = false;
+							} else {
+								e.dataSeries.visible = true;
+							}
+
+							e.chart.render();
+						}
+					},
+					data: comdataset[1],
+					rangeChanged: syncHandler
+				});
+				
+				var chart3 = new CanvasJS.Chart("livechartContainer3", {
+					zoomEnabled: true,
+					zoomType: "x", // change it to "xy" to enable zooming on both axes
+					axisX: {
+					gridThickness: 0,
+					tickThickness: 0,
+					lineThickness: 0,
+					labelFormatter: function (e) {
+											  return " ";
+											}
+					},
+					legend: {
+						cursor: "pointer",
+						itemclick: function (e) {
+							//console.log("legend click: " + e.dataPointIndex);
+							//console.log(e);
+							if (typeof (e.dataSeries.visible) === "undefined" || e.dataSeries.visible) {
+								e.dataSeries.visible = false;
+							} else {
+								e.dataSeries.visible = true;
+							}
+
+							e.chart.render();
+						}
+					},
+					data: comdataset[2],
+					rangeChanged: syncHandler
+				});
+					
+				var chart4 = new CanvasJS.Chart("livechartContainer4", {
+					zoomEnabled: true,
+					zoomType: "x", // change it to "xy" to enable zooming on both axes
+					axisX: {
+					gridThickness: 0,
+					tickThickness: 0,
+					lineThickness: 0,
+					labelFormatter: function (e) {
+												return " ";
+												}
+					},
+					legend: {
+						cursor: "pointer",
+						itemclick: function (e) {
+							//console.log("legend click: " + e.dataPointIndex);
+							//console.log(e);
+							if (typeof (e.dataSeries.visible) === "undefined" || e.dataSeries.visible) {
+								e.dataSeries.visible = false;
+							} else {
+								e.dataSeries.visible = true;
+							}
+
+							e.chart.render();
+						}
+					},
+					data: comdataset[3],
+					rangeChanged: syncHandler
+				});
+				
+				var chart5 = new CanvasJS.Chart("livechartContainer5", {
+					zoomEnabled: true,
+					zoomType: "x", // change it to "xy" to enable zooming on both axes
+					axisX: {
+					gridThickness: 0,
+					tickThickness: 0,
+					lineThickness: 0,
+					labelFormatter: function (e) {
+											  return " ";
+											}
+					},
+					legend: {
+						cursor: "pointer",
+						itemclick: function (e) {
+							//console.log("legend click: " + e.dataPointIndex);
+							//console.log(e);
+							if (typeof (e.dataSeries.visible) === "undefined" || e.dataSeries.visible) {
+								e.dataSeries.visible = false;
+							} else {
+								e.dataSeries.visible = true;
+							}
+
+							e.chart.render();
+						}
+					},
+					data: comdataset[4],
+					rangeChanged: syncHandler
+				});
+					
+				var chart6 = new CanvasJS.Chart("livechartContainer6", {
+					zoomEnabled: true,
+					zoomType: "x", // change it to "xy" to enable zooming on both axes
+					axisX: {
+					gridThickness: 0,
+					tickThickness: 0,
+					lineThickness: 0,
+					labelFormatter: function (e) {
+												return " ";
+												}
+					},
+					legend: {
+						cursor: "pointer",
+						itemclick: function (e) {
+							//console.log("legend click: " + e.dataPointIndex);
+							//console.log(e);
+							if (typeof (e.dataSeries.visible) === "undefined" || e.dataSeries.visible) {
+								e.dataSeries.visible = false;
+							} else {
+								e.dataSeries.visible = true;
+							}
+
+							e.chart.render();
+						}
+					},
+					data: comdataset[5],
+					rangeChanged: syncHandler
+				});
+				
+				var chart7 = new CanvasJS.Chart("livechartContainer7", {
+					zoomEnabled: true,
+					zoomType: "x", // change it to "xy" to enable zooming on both axes
+					axisX: {
+					gridThickness: 0,
+					tickThickness: 0,
+					lineThickness: 0,
+					labelFormatter: function (e) {
+											  return " ";
+											}
+					},
+					legend: {
+						cursor: "pointer",
+						itemclick: function (e) {
+							//console.log("legend click: " + e.dataPointIndex);
+							//console.log(e);
+							if (typeof (e.dataSeries.visible) === "undefined" || e.dataSeries.visible) {
+								e.dataSeries.visible = false;
+							} else {
+								e.dataSeries.visible = true;
+							}
+
+							e.chart.render();
+						}
+					},
+					data: comdataset[6],
+					rangeChanged: syncHandler
+				});
+					
+				var chart8 = new CanvasJS.Chart("livechartContainer8", {
+					zoomEnabled: true,
+					zoomType: "x", // change it to "xy" to enable zooming on both axes
+					axisX: {
+						gridThickness: 0
+					},
+					legend: {
+						cursor: "pointer",
+						itemclick: function (e) {
+							//console.log("legend click: " + e.dataPointIndex);
+							//console.log(e);
+							if (typeof (e.dataSeries.visible) === "undefined" || e.dataSeries.visible) {
+								e.dataSeries.visible = false;
+							} else {
+								e.dataSeries.visible = true;
+							}
+
+							e.chart.render();
+						}
+					},
+					data: comdataset[7],
+					rangeChanged: syncHandler
+				});
+				
+				
+				var charts = [chart1, chart2, chart3, chart4, chart5, chart6, chart7, chart8]; // add all charts (with axes) to be synced
+ 
+				function syncHandler(e) {
+				 
+					for (var i = 0; i < charts.length; i++) {
+						var chart = charts[i];
+				 
+						if (!chart.options.axisX) 
+						chart.options.axisX = {};
+						
+						if (!chart.options.axisY) 
+							chart.options.axisY = {};
+				 
+						if (e.trigger === "reset") {
+							
+							chart.options.axisX.viewportMinimum = chart.options.axisX.viewportMaximum = null;
+							chart.options.axisY.viewportMinimum = chart.options.axisY.viewportMaximum = null;
+						
+							chart.render();
+					
+						} else if (chart !== e.chart) {
+							
+							chart.options.axisX.viewportMinimum = e.axisX[0].viewportMinimum;
+							chart.options.axisX.viewportMaximum = e.axisX[0].viewportMaximum;
+							
+							chart.options.axisY.viewportMinimum = e.axisY[0].viewportMinimum;
+							chart.options.axisY.viewportMaximum = e.axisY[0].viewportMaximum;
+				 
+							chart.render();
+				 
+						}
+					}
+				}
+				
+				
+				var xVal = 0;
+				var yVal = 100; 
+				var updateInterval = 50000000;
+				var dataLength = 250; // number of dataPoints visible at any point
+				
+				var updateChart = function (count, msg) {
+					count = count || 1;						
+					var time = new Date;
+					//var acttime = time.getTime()
+					
+					for(var i=0; i<8; i++){
+						for(var j=0; j<8; j++){
+							msg.number.forEach(function(d){
+								if(d.ch==comdataset[i][j].legendText){
+									comdataset[i][j].dataPoints.push({	
+																		x: time.getTime(),
+																		y: d.val
+																	})	
+									}
+								if(comdataset[i][j].dataPoints.length>dataLength){
+									comdataset[i][j].dataPoints.shift()	
+									}
+							});
+						}
+					};
+					
+					chart1.render();
+					chart2.render();
+					chart3.render();
+					chart4.render();
+					chart5.render();
+					chart6.render();
+					chart7.render();
+					chart8.render();
+				};
+				
+			// To read from the server
+			$(document).ready(function(){
+				//connect to the socket server.
+				var socket = io.connect('http://' + document.domain + ':' + location.port + '/test');
+				//receive details from server
+				socket.on('newnumber', function(msg) {	
+					//console.log("number received", msg.number)
+					
+					updateChart(dataLength,msg);
+					setInterval(function(){updateChart()}, updateInterval);
+				});
+			});
+
+			
+			}
+  
+        </script>
+        
+	</body>
+</html>
