@@ -81,7 +81,7 @@ class WebSocketHandler(websocket.WebSocketHandler):
 				'max':np.max(weight),
 				'clustc':clustc
 			}
-			print(np.mean(weight))
+			# print(np.mean(weight))
 			#write the json object to the socket
 			self.write_message(json.dumps(point_data))
 
