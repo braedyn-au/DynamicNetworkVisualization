@@ -87,8 +87,10 @@ class WebSocketHandler(websocket.WebSocketHandler):
 			self.write_message(json.dumps(point_data))
 
 			#create new ioloop instance to intermittently publish data
-			ioloop.IOLoop.instance().add_timeout(datetime.timedelta(seconds=0.5), self.send_data)
-			time.sleep(0.5)
+			ioloop.IOLoop.instance().add_timeout(datetime.timedelta(seconds=0.01), self.send_data)
+			time.sleep(0.01)
+			if k > 182780:
+				break
 
 
 # def readCsvNets(dir='./nets'):
