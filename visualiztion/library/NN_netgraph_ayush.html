@@ -8,7 +8,7 @@
 	</head>
 	<body>
 		<div id="container"></div>
-		<div id="info"><a href="https://threejs.org" target="_blank" rel="noopener">NeuroNexus</a> Desktop Brain Dynamics</div>
+		<div id="info"><a href="https://threejs.org" target="_blank" rel="noopener">three.js</a> webgl - buffergeometry custom attributes - particles</div>
 
 		<script type="x-shader/x-vertex" id="vertexshader">
 
@@ -59,7 +59,6 @@
 			import { BufferGeometryUtils } from './jsm/utils/BufferGeometryUtils.js';
 			import {MathUtils} from '../src/math/MathUtils.js';
 			import {Spherical} from '../src/math/Spherical.js';
-			import { GUI } from './jsm/libs/dat.gui.module.js';
 
 			let renderer, scene, camera, stats;
 
@@ -67,42 +66,13 @@
 			let particlePositions, positions, ncolors, lineMesh;
 			let particlesData = []
 
-
 			const particles = 64;
-			const effectController = {
-				showDots: true,
-				showLines: true,
-				// brainOpacity: 0.021,
-				normalizationFactor: 80,
-				sizeFactor: 300,
-			};
 
 			init();
 			animate();
 
-			function initGUI() {
-
-				const gui = new GUI();
-
-				gui.add( effectController, "showDots" ).onChange( function ( value ) {
-
-					particleSystem.visible = value;
-
-				} );
-				gui.add( effectController, "showLines" ).onChange( function ( value ) {
-
-					lineMesh.visible = value;
-
-				} );
-				// gui.add( effectController, "brainOpacity", 0, 1 );
-				gui.add( effectController, "normalizationFactor", 0,100 );
-				gui.add( effectController, "sizeFactor", 1, 500 );
-
-				}
-
 			function init() {
 
-				initGUI();
 
 				scene = new THREE.Scene();
 
@@ -234,7 +204,7 @@
 					wireframe.scale(4.5,4.5,4.5);
 					let line = new THREE.LineSegments( wireframe );
 					line.material.depthTest = false;
-					line.material.opacity = 0.023;
+					line.material.opacity = 0.021;
 					line.material.transparent = true;
 					line.position.x = -10;
 					line.position.z=0;
@@ -275,97 +245,86 @@
 				renderer.setSize( window.innerWidth, window.innerHeight );
 
 			}
+			
+		
+			const sizes = geometry.attributes.size.array;
+			const time = Date.now()*0.01;
+			
+			var connection = new WebSocket('ws://localhost:8001/websocket');
+
+			connection.onmessage = function(event) {
+				let vertexpos = 0;
+				let colorpos = 0;
+				let numConnected = 0;
+				for ( let i = 0; i < particles; i ++ ){
+					var needResize = 0;
+					particlesData[ i ].numConnections = 0;
+					if (sizes[i] > 1000 ){
+						sizes[i] = 500;
+						needResize = needResize + 1;
+						continue;
+					} else if (sizes[i] > 501 ){
+						sizes[i] = 400;
+						needResize = needResize + 1;
+						continue;
+					} else if (sizes[i] > 301 ) {
+						sizes[i] = 100;
+						needResize = needResize + 1;
+						continue;
+						}
+					// // 	console.log(needResize)
+						}	
+				
+				// loads the whole network array from websocket_server_EEG.py
+				var newData = JSON.parse(event.data);
+				var now = new Date();
+
+				var obj = {node1: newData.node1, node2: newData.node2, weight: newData.weight};
+				//console.log(obj);
+
+				for ( let i = 1; i < obj.node1.length; i++){
+					const particleData = particlesData[obj.node1[i]];
+					const particleDataB = particlesData[obj.node2[i]];
+					particleData.numConnections ++;
+					particleDataB.numConnections ++;
+					const alpha = obj.weight[i]/10;
+					positions[ vertexpos ++ ] = particlePositions[ obj.node1[i] * 3 ];
+					positions[ vertexpos ++ ] = particlePositions[ obj.node1[i] * 3 + 1 ];
+					positions[ vertexpos ++ ] = particlePositions[ obj.node1[i] * 3 + 2 ];
+
+					positions[ vertexpos ++ ] = particlePositions[ obj.node2[i] * 3 ];
+					positions[ vertexpos ++ ] = particlePositions[ obj.node2[i] * 3 + 1 ];
+					positions[ vertexpos ++ ] = particlePositions[ obj.node2[i] * 3 + 2 ];
+
+					ncolors[ colorpos ++ ] = alpha*3;
+					ncolors[ colorpos ++ ] = alpha*3;
+					ncolors[ colorpos ++ ] = alpha*3;
+
+					ncolors[ colorpos ++ ] = alpha*3;
+					ncolors[ colorpos ++ ] = alpha*3;
+					ncolors[ colorpos ++ ] = alpha*3;
+
+					numConnected ++;
+
+					// alpha is always > 0.09 in example since i thresholed weights by 0.9
+					sizes[obj.node1[i]] = 1000*Math.abs(0.9-alpha);
+					sizes[obj.node2[i]] = 1000*Math.abs(0.9-alpha);
+
+
+					lineMesh.geometry.setDrawRange( 0, numConnected * 2 );
+					lineMesh.geometry.attributes.position.needsUpdate = true;
+					lineMesh.geometry.attributes.color.needsUpdate = true;
+
+					particleSystem.geometry.attributes.position.needsUpdate = true;
+
+				}
+				
+				// requestAnimationFrame( animate );
+				animate();
+				
+			}
 
 			function animate() {
-				const sizes = geometry.attributes.size.array;
-				const time = Date.now()*0.01;
-				
-				var connection = new WebSocket('ws://localhost:8001/websocket');
-
-				connection.onmessage = function(event) {
-					let vertexpos = 0;
-					let colorpos = 0;
-					let numConnected = 0;
-					for ( let i = 0; i < particles; i ++ ){
-						
-						var needResize = 0;
-						particlesData[ i ].numConnections = 0;
-						// sizes[i] = 100;
-						// while (sizes[i] > 100){
-						// 	sizes[i] = sizes[i] - time;
-						// 	console.log(time)
-						// // }
-						console.log(sizes[i])
-						if (sizes[i] > 1000 ){
-							sizes[i] = 500;
-							needResize = needResize + 1;
-							continue;
-						} else if (sizes[i] > 501 ){
-							sizes[i] = 450;
-							needResize = needResize + 1;
-							continue;
-						} else if (sizes[i] > 301 ) {
-							sizes[i] = 100;
-							needResize = needResize + 1;
-							continue;
-							}
-						// // 	console.log(needResize)
-							}	
-					
-					// loads the whole network array from websocket_server_EEG.py
-					var newData = JSON.parse(event.data);
-					var now = new Date();
-	
-					var obj = {node1: newData.node1, node2: newData.node2, weight: newData.weight, mean:newData.mean};
-					console.log(obj);
-
-					for ( let i = 1; i < obj.node1.length; i++){
-						const particleData = particlesData[obj.node1[i]];
-						const particleDataB = particlesData[obj.node2[i]];
-						particleData.numConnections ++;
-						particleDataB.numConnections ++;
-
-						// sigmoid
-						// const alpha = obj.weight[i]/obj.max;
-						const alpha = 1/(1+Math.exp(-effectController.normalizationFactor*(obj.weight[i]-obj.mean)));
-						
-
-						console.log(alpha)
-						positions[ vertexpos ++ ] = particlePositions[ obj.node1[i] * 3 ];
-						positions[ vertexpos ++ ] = particlePositions[ obj.node1[i] * 3 + 1 ];
-						positions[ vertexpos ++ ] = particlePositions[ obj.node1[i] * 3 + 2 ];
-
-						positions[ vertexpos ++ ] = particlePositions[ obj.node2[i] * 3 ];
-						positions[ vertexpos ++ ] = particlePositions[ obj.node2[i] * 3 + 1 ];
-						positions[ vertexpos ++ ] = particlePositions[ obj.node2[i] * 3 + 2 ];
-
-						ncolors[ colorpos ++ ] = alpha*alpha*3;
-						ncolors[ colorpos ++ ] = alpha*alpha*3;
-						ncolors[ colorpos ++ ] = alpha*alpha*3;
-
-						ncolors[ colorpos ++ ] = alpha*3;
-						ncolors[ colorpos ++ ] = alpha*3;
-						ncolors[ colorpos ++ ] = alpha*3;
-
-						numConnected ++;
-
-						// alpha is always > 0.09 in example since i thresholed weights by 0.9
-						sizes[obj.node1[i]] = sizes[obj.node1[i]] + effectController.sizeFactor*Math.abs(alpha);
-						sizes[obj.node2[i]] = sizes[obj.node2[i]] + effectController.sizeFactor*Math.abs(alpha);
-
-
-						lineMesh.geometry.setDrawRange( 0, numConnected * 2 );
-						lineMesh.geometry.attributes.position.needsUpdate = true;
-						lineMesh.geometry.attributes.color.needsUpdate = true;
-
-						particleSystem.geometry.attributes.position.needsUpdate = true;
-
-					}
-					
-					// requestAnimationFrame( animate );
-
-					
-				}
 				
 				render();
 				stats.update();

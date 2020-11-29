@@ -28,7 +28,7 @@ def randomNumberGenerator():
 	"""
 	#infinite loop of magical random numbers
 	#print("Making random numbers")
-	df = pd.read_csv('righthand.csv', header=0, index_col=0)
+	df = pd.read_csv('/../../processed_right_hand_data.txt', header=0, index_col=0)
 	df = df.drop("E65", axis = 1)
 	size = len(df.index)
 	while not thread_stop_event.isSet():		

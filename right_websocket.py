@@ -56,7 +56,6 @@ class WebSocketHandler(websocket.WebSocketHandler):
 			weight = []
 
 			for i in range(l):
-				# ADJ_corr[i][i] = 1  # setting the diagonal elements 
 				for j in range(i+1,l):
 					[corr_TS, Pval_TS] = pearsonr(df1[header[i]], df1[header[j]])
 
