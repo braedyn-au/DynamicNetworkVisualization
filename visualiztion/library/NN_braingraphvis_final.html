@@ -9,7 +9,9 @@
 	<body>
 		<div id="container"></div>
 		<div id="info"><a href="https://threejs.org" target="_blank" rel="noopener">NeuroNexus</a> Desktop Brain Dynamics</div>
-
+		<div id="livechartContainer1" style="height: 180px; width: 100%;"></div>
+		
+		<script src="https://canvasjs.com/assets/script/canvasjs.min.js"> </script>
 		<script type="x-shader/x-vertex" id="vertexshader">
 
 			attribute float size;
@@ -74,7 +76,7 @@
 				showLines: true,
 				// brainOpacity: 0.021,
 				normalizationFactor: 10,
-				sizeFactor: 500,
+				sizeFactor: 300,
 			};
 
 			init();
@@ -275,9 +277,128 @@
 				renderer.setSize( window.innerWidth, window.innerHeight );
 
 			}
+			
+			
+			
+			// For making line chart for clustering coefficient
+			var vals = []
+			
+			var chart1 = new CanvasJS.Chart("livechartContainer1", {
+				zoomEnabled: true,
+				zoomType: "x", // change it to "xy" to enable zooming on both axes
+				backgroundColor: "#000",
+				title :{
+					text: "Clustering coefficient",
+					fontSize: 25,
+					fontColor: "white",
+					backgroundColor: "#000"
+				},
+				axisX: {
+					tickColor: "white",
+					labelFontColor: "white",
+					gridThickness: 0
+					//tickThickness: 0,
+					//lineThickness: 0,
+					//labelFormatter: function (e) {
+					//						  return " ";
+					//						}
+				},
+				axisY:{
+					tickColor: "white",
+					labelFontColor: "white"
+				 },
+				legend: {
+					cursor: "pointer",
+					fontColor:"white",
+					itemclick: function (e) {
+						//console.log("legend click: " + e.dataPointIndex);
+						//console.log(e);
+						if (typeof (e.dataSeries.visible) === "undefined" || e.dataSeries.visible) {
+							e.dataSeries.visible = false;
+						} else {
+							e.dataSeries.visible = true;
+						}
 
-			function animate() {
-				const sizes = geometry.attributes.size.array;
+						e.chart.render();
+					}
+				},
+				data: [{	
+						showInLegend: true,
+						lineColor: "white",
+						type: "line", 
+						xValueType: "dateTime",
+						legendText: "Clustering coefficient",
+						xValueFormatString: "hh:mm:ss TT",
+						dataPoints: vals}],
+				rangeChanged: syncHandler
+			});
+			
+			
+			var charts = [chart1]; // add all charts (with axes) to be synced
+
+			function syncHandler(e) {
+			 
+				for (var i = 0; i < charts.length; i++) {
+					var chart = charts[i];
+			 
+					if (!chart.options.axisX) 
+					chart.options.axisX = {};
+					
+					if (!chart.options.axisY) 
+						chart.options.axisY = {};
+			 
+					if (e.trigger === "reset") {
+						
+						chart.options.axisX.viewportMinimum = chart.options.axisX.viewportMaximum = null;
+						chart.options.axisY.viewportMinimum = chart.options.axisY.viewportMaximum = null;
+					
+						chart.render();
+				
+					} else if (chart !== e.chart) {
+						
+						chart.options.axisX.viewportMinimum = e.axisX[0].viewportMinimum;
+						chart.options.axisX.viewportMaximum = e.axisX[0].viewportMaximum;
+						
+						chart.options.axisY.viewportMinimum = e.axisY[0].viewportMinimum;
+						chart.options.axisY.viewportMaximum = e.axisY[0].viewportMaximum;
+			 
+						chart.render();
+			 
+					}
+				}
+			}
+			
+			
+			var xVal = 0;
+			var yVal = 100; 
+			var dataLength = 1000; // number of dataPoints visible at any point
+			
+			//var mydate = new Date();
+			//mydate.setFullYear(2020);
+			//mydate.setMonth(11);
+			//mydate.setDate(30);
+			//mydate.setHours(10);
+			//mydate.setMinutes(40);
+			var yVal = 0.0
+			var updateChart = function (clustc) {				
+				
+				var mydate = new Date();
+				
+				yVal = clustc;// yVal + Math.round(5 + Math.random() *(-5-5));
+				vals.push({	
+							x: mydate.getTime(),
+							y: yVal
+						})	
+				if(vals.length>dataLength){
+					vals.shift()	
+				}
+				chart1.render();
+			};
+			
+			//*/
+			
+			
+			const sizes = geometry.attributes.size.array;
 				const time = Date.now()*0.01;
 				
 				var connection = new WebSocket('ws://localhost:8001/websocket');
@@ -316,7 +437,7 @@
 					var newData = JSON.parse(event.data);
 					var now = new Date();
 	
-					var obj = {node1: newData.node1, node2: newData.node2, weight: newData.weight, mean:newData.mean};
+					var obj = {node1: newData.node1, node2: newData.node2, weight: newData.weight, max:newData.max, clustc:newData.clustc};
 					console.log(obj);
 
 					for ( let i = 1; i < obj.node1.length; i++){
@@ -327,7 +448,7 @@
 
 						// sigmoid
 						// const alpha = obj.weight[i]/obj.max;
-						const alpha = 1/(1+Math.exp(-effectController.normalizationFactor*(obj.weight[i]-obj.mean)));
+						const alpha = 1/(1+Math.exp(-effectController.normalizationFactor*(obj.weight[i]-obj.max)));
 						
 
 						console.log(alpha)
@@ -363,9 +484,13 @@
 					}
 					
 					// requestAnimationFrame( animate );
-
+					animate()
+					updateChart(obj.clustc);
 					
 				}
+			
+
+			function animate() {
 				
 				render();
 				stats.update();
@@ -378,7 +503,7 @@
 
 				const time = Date.now() * 0.005;
 
-				scene.rotation.y = 0.05 * time;
+				// particleSystem.rotation.z = 0.01 * time;
 
 				// const sizes = geometry.attributes.size.array;
 

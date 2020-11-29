@@ -10,6 +10,7 @@ import pandas as pd
 import os
 import numpy as np
 from scipy.stats import pearsonr
+import networkx as nx
 
 paymentTypes = ["cash", "tab", "visa","mastercard","bitcoin"]
 namesArray = ['Ben', 'Jarrod', 'Vijay', 'Aziz']
@@ -54,33 +55,42 @@ class WebSocketHandler(websocket.WebSocketHandler):
 			nodei = []
 			nodej = []
 			weight = []
+			G = nx.Graph()
 
 			for i in range(l):
 				# ADJ_corr[i][i] = 1  # setting the diagonal elements 
 				for j in range(i+1,l):
 					[corr_TS, Pval_TS] = pearsonr(df1[header[i]], df1[header[j]])
 
-					if Pval_TS < threshold and corr_TS>0.8:
+					if Pval_TS < threshold or corr_TS>0.5:
 						nodei.append(i)
 						nodej.append(j)
 						if network == 'Weighted network':
 							weight.append(corr_TS)
 						else:    
 							weight.append(1)
-
+						G.add_edge(i,j,weight=corr_TS)
+			G = nx.to_undirected(G)
+			clustc = nx.average_clustering(G)
+			print(clustc)
+			
 			point_data = {
 				'node1':nodei,
 				'node2':nodej,
 				'weight':weight,
-				'mean':np.mean(weight)
+				'max':np.max(weight),
+				'clustc':clustc
 			}
-			print(weight, np.mean(weight))
+			print(np.mean(weight))
 			#write the json object to the socket
 			self.write_message(json.dumps(point_data))
 
 			#create new ioloop instance to intermittently publish data
 			ioloop.IOLoop.instance().add_timeout(datetime.timedelta(seconds=0.5), self.send_data)
 			time.sleep(0.5)
+			if k > 182780:
+				break
+
 
 
 # def readCsvNets(dir='./nets'):
